@@ -79,9 +79,8 @@ public class DatabaseConnector {
                 System.out.println("Last Name: " + resultSet.getString("last_name"));
                 System.out.println("Email: " + resultSet.getString("email"));
                 System.out.println("Enrollment Date: " + resultSet.getDate("enrollment_date"));
-                System.out.println("---------------");
                 System.out.println("               ");
-                System.out.println("               ");
+                
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -152,13 +151,49 @@ public class DatabaseConnector {
         addStudent(connection, firstName, lastName, email, enrollmentDate);
     }
 
+
+
+
     // Interactive method to update student email
     public static void updateStudentEmailInteractive(Connection connection, Scanner scanner) {
-        System.out.print("Enter the student ID to update: ");
-        int studentId = scanner.nextInt();
-        System.out.print("Enter new email address: ");
-        String newEmail = scanner.next();
-        updateStudentEmail(connection, studentId, newEmail);
+        try {
+            System.out.print("Enter the student ID to update: ");
+            int studentId = scanner.nextInt();
+
+            // find the student old information
+            String querySQL = "SELECT * FROM students WHERE student_id = ?";
+            try (PreparedStatement pstmtQuery = connection.prepareStatement(querySQL)) {
+                pstmtQuery.setInt(1, studentId);
+                ResultSet resultSet = pstmtQuery.executeQuery();
+                if (resultSet.next()) {
+                    System.out.println("Current information:");
+                    System.out.println("Student ID: " + resultSet.getInt("student_id"));
+                    System.out.println("First Name: " + resultSet.getString("first_name"));
+                    System.out.println("Last Name: " + resultSet.getString("last_name"));
+                    System.out.println("Email: " + resultSet.getString("email"));
+                    System.out.println("Enrollment Date: " + resultSet.getDate("enrollment_date"));
+                    System.out.println("---------------");
+
+                    // updata new email
+                    System.out.print("Enter new email address: ");
+                    String newEmail = scanner.next();
+
+                    String updateSQL = "UPDATE students SET email = ? WHERE student_id = ?";
+                    try (PreparedStatement pstmtUpdate = connection.prepareStatement(updateSQL)) {
+                        pstmtUpdate.setString(1, newEmail);
+                        pstmtUpdate.setInt(2, studentId);
+                        int rowsAffected = pstmtUpdate.executeUpdate();
+                        if (rowsAffected > 0) {
+                            System.out.println("Student email updated successfully.");
+                        }
+                    }
+                } else {
+                    System.out.println("Student with ID " + studentId + " not found.");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     // Interactive method to delete a student
